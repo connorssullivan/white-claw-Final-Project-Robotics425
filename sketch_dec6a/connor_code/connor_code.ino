@@ -7,11 +7,8 @@ SoftwareSerial mySerial(7, 8); // RX, TX
 Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
 const int SERVO_FREQ = 50;
 
-const int SHOULDER_1_MIN = 282; // Minimum position for Shoulder 1
-const int SHOULDER_1_MAX = 461; // Maximum position for Shoulder 1
+const int SHOULDER_COST= 282; // Minimum position for Shoulder 1
 
-const int SHOULDER_2_MIN = 205; // Minimum position for Shoulder 2
-const int SHOULDER_2_MAX = 384; // Maximum position for Shoulder 2
 
 // Degree mappings
 int degrees[] = {103, 128, 154, 179, 205, 231, 256, 282, 308, 333, 359, 384, 410, 436, 461, 487, 513, 538, 564};
@@ -73,29 +70,20 @@ void moveJoint(int &currentPos, int step, int channel, const char *jointName) {
 
   int newIndex = currentIndex + step;
   if (newIndex >= 0 && newIndex < sizeof(degrees) / sizeof(degrees[0])) {
-    int newPosition = degrees[newIndex];
-
-    // Check limits for Shoulder 1 and Shoulder 2
-    if ((channel == 0 && (newPosition < SHOULDER_1_MIN || newPosition > SHOULDER_1_MAX)) || 
-        (channel == 1 && (newPosition < SHOULDER_2_MIN || newPosition > SHOULDER_2_MAX))) {
-      Serial.print(jointName);
-      Serial.println(" Movement out of bounds (limit reached)");
-      return;
-    }
-
-    // Update position and move the servo
-    currentPos = newPosition;
+    currentPos = degrees[newIndex];
     pwm.setPWM(channel, 0, currentPos);
     Serial.print(jointName);
     Serial.print(" Position: ");
     Serial.println(currentPos);
   } else {
     Serial.print(jointName);
-    Serial.println(" Movement out of bounds (invalid index)");
+    Serial.println(" Movement out of bounds");
   }
 }
 
 void moveShoulder(int step) {
+  if(shoulderPos[0] == SHOULDER_COST|| shoulderPos[1] == SHOULDER_COST )
+    return;
   moveJoint(shoulderPos[0], step, 0, "Shoulder 1");
   moveJoint(shoulderPos[1], -step, 1, "Shoulder 2");
 }
